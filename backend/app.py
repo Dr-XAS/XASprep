@@ -18,7 +18,11 @@ if CORS:
 logging.basicConfig(level=logging.INFO)
 
 # --- Likes Storage ---
-LIKES_FILE = os.path.join(os.path.dirname(__file__), 'likes.json')
+# The likes counter is the app's only mutable state. In a deployment it lives
+# outside the release tree (XASPREP_DATA_DIR, see ops/deploy.sh) so a redeploy
+# cannot reset it; locally it stays next to this file.
+DATA_DIR = os.environ.get('XASPREP_DATA_DIR') or os.path.dirname(__file__)
+LIKES_FILE = os.path.join(DATA_DIR, 'likes.json')
 
 def get_likes_count():
     """Read the current likes count from file."""
@@ -51,6 +55,19 @@ SHELL_MAP = {
 @app.route('/')
 def index():
     return app.send_static_file('index.html')
+
+@app.route('/healthz')
+def healthz():
+    """Liveness probe for the deploy scripts: proves the process answers and
+    that xraylib is importable and working, not merely that the port is open."""
+    try:
+        cu_k_kev = xrl.EdgeEnergy(29, xrl.K_SHELL)
+        if not 8.9 < cu_k_kev < 9.1:
+            raise ValueError(f"unexpected Cu K edge energy {cu_k_kev}")
+    except Exception as e:
+        logging.error(f"healthz failed: {e}")
+        return jsonify({"ok": False, "error": str(e)}), 503
+    return jsonify({"ok": True})
 
 @app.route('/api/calculate', methods=['POST'])
 def calculate():

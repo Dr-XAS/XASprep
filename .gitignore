@@ -3,3 +3,29 @@ __pycache__/XASCalc_core.cpython-313.pyc
 __pycache__/XASCalc_gui.cpython-313.pyc
 .DS_Store
 backend/__pycache__/core.cpython-311.pyc
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Frontend build and dependencies
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# Written into a release by ops/deploy.sh; a checkout has git to ask instead
+build.json
+.build-complete
+
+# Mutable state on a deployed host lives outside every release
+data/
+ops/env.*
+ops/logs/
+ops/repo.git/
+
+# Per-machine agent settings
+.claude/settings.local.json
+.claude/worktrees/
