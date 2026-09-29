@@ -89,6 +89,11 @@ build_frontend() {
     fi
     (
         cd "$dest/frontend" || exit 1
+        # Rollup opens hundreds of files at once and the soft limit inside a
+        # screen or cron is 1024, which is how the watcher's first build died
+        # of EMFILE on lucide-react's icon directory while the same build from
+        # a login shell had passed. The hard limit is far higher; take it.
+        ulimit -Sn 65536 2>/dev/null || ulimit -Sn "$(ulimit -Hn)" 2>/dev/null || true
         export PATH="$NODE_BIN:$PATH"
         export VITE_GA_MEASUREMENT_ID="$ga"
         # npm's cache lives under HOME by default; keep it under the app so
