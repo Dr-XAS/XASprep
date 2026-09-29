@@ -278,13 +278,20 @@ screen_quit() {
 }
 
 # screen_start <name> <cwd> <logfile> <command...>
+#
+# `bash -c`, not `bash -lc`: a login shell on this host runs
+# /etc/profile.d/zzaps.sh, which sets the open-files limit to 1024, hard and
+# soft, and nothing below it can raise that again. The Vite build opens more
+# files than that and died of EMFILE three times in a row under a watcher
+# that had been started through a login shell. Nothing here needs a profile:
+# lib.sh sets PATH and every path is absolute.
 screen_start() {
     local name=$1 cwd=$2 logfile=$3; shift 3
     assert_own_screen "$name"
     screen_exists "$name" && { warn "screen $name already exists; not starting a second"; return 0; }
     mkdir -p "$(dirname "$logfile")"
     screen -L -Logfile "$logfile" -dmS "$name" \
-        bash -lc "cd $(printf '%q' "$cwd") && exec $(printf '%q ' "$@")"
+        bash -c "cd $(printf '%q' "$cwd") && exec $(printf '%q ' "$@")"
 }
 
 # The one command that runs the app, shared by deploy, boot and liveness so

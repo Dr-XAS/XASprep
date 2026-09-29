@@ -89,11 +89,18 @@ build_frontend() {
     fi
     (
         cd "$dest/frontend" || exit 1
-        # Rollup opens hundreds of files at once and the soft limit inside a
-        # screen or cron is 1024, which is how the watcher's first build died
-        # of EMFILE on lucide-react's icon directory while the same build from
-        # a login shell had passed. The hard limit is far higher; take it.
+        # Rollup opens hundreds of files at once and the default soft limit
+        # is 1024, which is how the watcher's first build died of EMFILE on
+        # lucide-react's icon directory. The hard limit is far higher except
+        # under a login shell, where /etc/profile.d/zzaps.sh pins both to
+        # 1024 for good; screen_start avoids login shells for that reason,
+        # and `ssh drxas '.../deploy.sh ...'` is not one either. An
+        # interactive login is, so say so rather than fail mysteriously.
         ulimit -Sn 65536 2>/dev/null || ulimit -Sn "$(ulimit -Hn)" 2>/dev/null || true
+        if (( $(ulimit -Sn) < 4096 )); then
+            printf 'warning: open-files limit is only %s (hard %s); a login shell pins it there, and the build may fail with EMFILE. Run the deploy as: ssh drxas %q\n' \
+                "$(ulimit -Sn)" "$(ulimit -Hn)" "$OPS_DIR/deploy.sh deploy --latest"
+        fi
         export PATH="$NODE_BIN:$PATH"
         export VITE_GA_MEASUREMENT_ID="$ga"
         # npm's cache lives under HOME by default; keep it under the app so
