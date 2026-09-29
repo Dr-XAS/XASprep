@@ -169,7 +169,7 @@ wait_healthy() {
 start_live() {
     local release=$1
     write_env_file "$OPS_DIR/env.live" "$WEB_HOST" "$WEB_PORT"
-    start_web_screen "$SCREEN_WEB" "$release" "$OPS_DIR/env.live" "$LOG_DIR/$SCREEN_WEB.log"
+    restart_web "$SCREEN_WEB" "$release" "$OPS_DIR/env.live" "$LOG_DIR/$SCREEN_WEB.log" "$WEB_PID" "$WEB_PORT"
 }
 
 prune_releases() {
@@ -266,13 +266,13 @@ do_deploy() {
     prev=$(readlink -e "$CURRENT_LINK" 2>/dev/null || true)
 
     # --- candidate on a loopback port, before anything live is touched ---
-    screen_quit "$SCREEN_WEB_CAND" || true
+    stop_web "$SCREEN_WEB_CAND" "$CAND_PID" "$CAND_PORT" || die 5 "could not free the candidate port $CAND_PORT; the running release was not touched"
     prepare_candidate_data || die 5 "could not copy the data for the candidate; the running release was not touched"
     write_env_file "$OPS_DIR/env.candidate" "$CAND_HOST" "$CAND_PORT" candidate
-    start_web_screen "$SCREEN_WEB_CAND" "$release" "$OPS_DIR/env.candidate" "$LOG_DIR/$SCREEN_WEB_CAND.log"
+    start_web_screen "$SCREEN_WEB_CAND" "$release" "$OPS_DIR/env.candidate" "$LOG_DIR/$SCREEN_WEB_CAND.log" "$CAND_PID"
 
     if ! wait_healthy "http://$CAND_HOST:$CAND_PORT$HEALTH_PATH"; then
-        screen_quit "$SCREEN_WEB_CAND" || true
+        stop_web "$SCREEN_WEB_CAND" "$CAND_PID" "$CAND_PORT" || true
         rm -rf "$CAND_DIR"
         tail -20 "$LOG_DIR/$SCREEN_WEB_CAND.log" 2>/dev/null | sed 's/^/  candidate| /' >&2 || true
         die 5 "candidate $sha failed its health check; the running release was not touched"
@@ -282,11 +282,11 @@ do_deploy() {
     local page
     page=$(http_status "http://$CAND_HOST:$CAND_PORT/" 10)
     if [[ $page != 200 ]]; then
-        screen_quit "$SCREEN_WEB_CAND" || true
+        stop_web "$SCREEN_WEB_CAND" "$CAND_PID" "$CAND_PORT" || true
         rm -rf "$CAND_DIR"
         die 5 "candidate $sha answers /healthz but / returned $page; the running release was not touched"
     fi
-    screen_quit "$SCREEN_WEB_CAND" || true
+    stop_web "$SCREEN_WEB_CAND" "$CAND_PID" "$CAND_PORT" || true
     rm -rf "$CAND_DIR"
     log "candidate $sha passed; swapping"
 
@@ -294,7 +294,6 @@ do_deploy() {
     ln -sfn "$release" "$CURRENT_LINK.new"
     mv -Tf "$CURRENT_LINK.new" "$CURRENT_LINK"
 
-    screen_quit "$SCREEN_WEB" || true
     start_live "$release"
 
     if ! wait_healthy "http://127.0.0.1:$WEB_PORT$HEALTH_PATH"; then
@@ -303,7 +302,6 @@ do_deploy() {
             warn "rolling back to $(basename "$prev")"
             ln -sfn "$prev" "$CURRENT_LINK.new"
             mv -Tf "$CURRENT_LINK.new" "$CURRENT_LINK"
-            screen_quit "$SCREEN_WEB" || true
             start_live "$prev"
             wait_healthy "http://127.0.0.1:$WEB_PORT$HEALTH_PATH" \
                 && warn "rolled back to $(basename "$prev")" \
@@ -343,7 +341,6 @@ do_rollback() {
     log "rolling back to $back"
     ln -sfn "$prev" "$CURRENT_LINK.new"
     mv -Tf "$CURRENT_LINK.new" "$CURRENT_LINK"
-    screen_quit "$SCREEN_WEB" || true
     start_live "$prev"
     wait_healthy "http://127.0.0.1:$WEB_PORT$HEALTH_PATH" || die 5 "rollback target is not healthy"
     state_write last-successful "$back"
@@ -362,7 +359,7 @@ do_unpin() {
 
 do_status() {
     printf 'app        xasprep\n'
-    printf 'current    %s\n' "$(readlink -f "$CURRENT_LINK" 2>/dev/null || echo '<none>')"
+    printf 'current    %s\n' "$(readlink -e "$CURRENT_LINK" 2>/dev/null || echo '<none>')"
     printf 'successful %s\n' "$(state_read last-successful)"
     printf 'remote     %s\n' "$(remote_tip 2>/dev/null || echo '<unreachable>')"
     printf 'web screen %s\n' "$(screen_exists "$SCREEN_WEB" && echo up || echo DOWN)"

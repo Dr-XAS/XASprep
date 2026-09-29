@@ -30,8 +30,8 @@ record_restart() {
 
 start_web() {
     local release
-    release=$(readlink -f "$CURRENT_LINK") || return 1
-    start_web_screen "$SCREEN_WEB" "$release" "$OPS_DIR/env.live" "$LOG_DIR/$SCREEN_WEB.log"
+    release=$(readlink -e "$CURRENT_LINK") || return 1
+    restart_web "$SCREEN_WEB" "$release" "$OPS_DIR/env.live" "$LOG_DIR/$SCREEN_WEB.log" "$WEB_PID" "$WEB_PORT"
 }
 
 check() {
@@ -67,7 +67,6 @@ check() {
 
     warn "restarting web: $reason"
     record_restart "$reason"
-    screen_quit "$SCREEN_WEB" || true
     start_web
     sleep 15
     status=$(http_status "http://127.0.0.1:$WEB_PORT$HEALTH_PATH" 10)

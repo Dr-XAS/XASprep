@@ -32,13 +32,16 @@ main() {
     fi
 
     local release sha
-    release=$(readlink -f "$CURRENT_LINK") || die 1 "current is a broken symlink"
+    release=$(readlink -e "$CURRENT_LINK") || die 1 "current is a broken symlink"
     sha=$(basename "$release")
     [[ -x "$release/.venv/bin/gunicorn" ]] || die 1 "release $sha has no venv; deploy by hand"
     [[ -f "$OPS_DIR/env.live" ]] || die 1 "$OPS_DIR/env.live missing; run ops/deploy.sh deploy --latest"
 
     log "boot: starting $sha on port $WEB_PORT"
-    start_web_screen "$SCREEN_WEB" "$release" "$OPS_DIR/env.live" "$LOG_DIR/$SCREEN_WEB.log"
+    # restart_web rather than start: a pid file left from before the reboot
+    # names a pid that is dead or somebody else's, and stop_web checks both.
+    restart_web "$SCREEN_WEB" "$release" "$OPS_DIR/env.live" "$LOG_DIR/$SCREEN_WEB.log" "$WEB_PID" "$WEB_PORT" \
+        || die 1 "could not free port $WEB_PORT at boot"
 
     screen_start "$SCREEN_WATCH" "$OPS_DIR" "$LOG_DIR/$SCREEN_WATCH.log" \
         /bin/bash "$OPS_DIR/watch.sh"

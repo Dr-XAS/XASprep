@@ -71,6 +71,10 @@ SCREEN_WEB=app-xasprep-web
 SCREEN_WATCH=app-xasprep-watch
 SCREEN_WEB_CAND=app-xasprep-web-candidate
 
+# gunicorn writes its master pid here, and stop_web reads it back.
+WEB_PID="$STATE_DIR/web.pid"
+CAND_PID="$STATE_DIR/candidate.pid"
+
 # The live port, lab-reachable. The candidate port is bound only during a
 # deploy, on loopback, and is never advertised.
 WEB_HOST=0.0.0.0
@@ -288,24 +292,95 @@ screen_start() {
 # directory, where app.py and core.py live; Flask resolves ../frontend/dist
 # from there. The env file carries the bind address and the data directory.
 #
-# web_command <release> <env-file>
+# gunicorn is not exec'd. It treats SIGHUP as "reload the workers", so when a
+# screen is quit and the pty hangs up, an exec'd gunicorn reloads, is adopted
+# by init and keeps the port: the first deploy left its candidate serving on
+# 15002 with no screen around it. The wrapper stays as the child's parent,
+# turns the hangup into a SIGTERM to gunicorn, and waits for it to leave. The
+# pid file is the second line of defence: stop_web reads it and terminates
+# the master directly, whether or not a screen still exists.
+#
+# web_command <release> <env-file> <pidfile>
 web_command() {
-    local release=$1 envfile=$2
-    printf 'set -a; . %q; set +a; exec %q app:app --bind "$XASPREP_HOST:$XASPREP_PORT" --workers %q --access-logfile - --error-logfile -' \
-        "$envfile" "$release/.venv/bin/gunicorn" "$GUNICORN_WORKERS"
+    local release=$1 envfile=$2 pidfile=$3
+    printf 'set -a; . %q; set +a; %q app:app --bind "$XASPREP_HOST:$XASPREP_PORT" --workers %q --pid %q --access-logfile - --error-logfile - & p=$!; trap %q HUP TERM INT; wait "$p"; wait "$p"' \
+        "$envfile" "$release/.venv/bin/gunicorn" "$GUNICORN_WORKERS" "$pidfile" 'kill -TERM "$p" 2>/dev/null'
 }
 
-# start_web_screen <screen> <release> <env-file> <logfile>
+# start_web_screen <screen> <release> <env-file> <logfile> <pidfile>
 start_web_screen() {
-    local name=$1 release=$2 envfile=$3 logfile=$4
-    screen_start "$name" "$release/backend" "$logfile" bash -c "$(web_command "$release" "$envfile")"
+    local name=$1 release=$2 envfile=$3 logfile=$4 pidfile=$5
+    screen_start "$name" "$release/backend" "$logfile" bash -c "$(web_command "$release" "$envfile" "$pidfile")"
+}
+
+# A process is ours only if its command line names a gunicorn inside this
+# app's releases directory. Checked before any signal is sent to a pid read
+# from a file or found on a port, so a recycled pid or a stranger who took
+# the port is never signalled. This is the only process match in the
+# codebase, and it is by our own path, never by a name.
+pid_is_ours() {
+    local pid=$1 cmd
+    [[ $pid =~ ^[0-9]+$ ]] || return 1
+    cmd=$(tr '\0' ' ' <"/proc/$pid/cmdline" 2>/dev/null) || return 1
+    [[ $cmd == *"$RELEASES_DIR/"*gunicorn* ]]
+}
+
+# The gunicorn masters listening on one of our ports, for the case where the
+# pid file is gone: an orphan from a screen that was quit by hand, or from a
+# release older than the pid files.
+port_masters() {
+    local pid
+    for pid in $(ss -ltnpH "sport = :$1" 2>/dev/null | grep -o 'pid=[0-9]*' | cut -d= -f2 | sort -u); do
+        # Workers share the socket; only the master's parent is not gunicorn.
+        pid_is_ours "$pid" || continue
+        pid_is_ours "$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')" && continue
+        printf '%s\n' "$pid"
+    done
+}
+
+# stop_web <screen> <pidfile> <port> — stop one instance of the app for good:
+# the screen, the master named in the pid file, and anything of ours still
+# holding the port. Returns once the port is free or gives up after 30s.
+stop_web() {
+    local name=$1 pidfile=$2 port=$3 pid deadline
+    screen_quit "$name" || true
+    pid=$(cat "$pidfile" 2>/dev/null || true)
+    if [[ $pid =~ ^[0-9]+$ ]] && pid_is_ours "$pid"; then
+        kill -TERM "$pid" 2>/dev/null || true
+    fi
+    for pid in $(port_masters "$port"); do
+        warn "gunicorn $pid still holds port $port outside its screen; terminating it"
+        kill -TERM "$pid" 2>/dev/null || true
+    done
+    deadline=$((SECONDS + 30))
+    while (( SECONDS < deadline )); do
+        port_open "$port" || { rm -f "$pidfile"; return 0; }
+        sleep 1
+    done
+    for pid in $(port_masters "$port"); do
+        warn "gunicorn $pid ignored SIGTERM for 30s; killing it"
+        kill -KILL "$pid" 2>/dev/null || true
+    done
+    sleep 1
+    rm -f "$pidfile"
+    port_open "$port" && { err "port $port is still held after stop_web"; return 1; }
+    return 0
+}
+
+# restart_web <screen> <release> <env-file> <logfile> <pidfile> <port>
+restart_web() {
+    local name=$1 release=$2 envfile=$3 logfile=$4 pidfile=$5 port=$6
+    stop_web "$name" "$pidfile" "$port" || return 1
+    start_web_screen "$name" "$release" "$envfile" "$logfile" "$pidfile"
 }
 
 # --------------------------------------------------------------------------
 # HTTP and ports
 # --------------------------------------------------------------------------
 http_status() {
-    curl -s -o /dev/null -m "${2:-10}" -w '%{http_code}' "$1" 2>/dev/null || printf '000'
+    local code
+    code=$(curl -s -o /dev/null -m "${2:-10}" -w '%{http_code}' "$1" 2>/dev/null) || true
+    printf '%s' "${code:-000}"
 }
 
 http_body() {
