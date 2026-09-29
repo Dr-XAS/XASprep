@@ -202,8 +202,9 @@ To stop automatic deploys without stopping the app, `touch
    `IdentitiesOnly`, no agent and an empty SSH config, because the Dr-XAS
    organization has deploy keys disabled. If that changes, add one and point
    `XASPREP_DEPLOY_KEY` at it; nothing else changes.
-3. `requirements.txt` is unpinned, so each release installs whatever PyPI
-   resolves that day. A `requirements.lock` would make releases reproducible;
-   `build_release` would need one line to prefer it.
+3. `requirements.txt` pins the direct dependencies exactly, with numpy and
+   scipy split on `python_version` because the host's Python 3.9 cannot take
+   the builds that Python 3.12 and later need. Transitive packages float; a
+   full freeze would close that gap.
 4. Alerts are written to `ops/logs/alerts.log` and reach a person through the
    ops sentinel. Nothing in this directory sends a message itself.
