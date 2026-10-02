@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "inspected_on": "2026-09-28",
+  "note": "HEAD identifies the checkout. SHA256 identifies the actual local file inspected, including uncommitted changes. Paths are relative to a workspace containing the source repositories.",
+  "sources": [
+    {
+      "repository": "Dr.XAS",
+      "path": "frontend/app/layout.tsx",
+      "head": "d1c13e45343f67442e3676d8b5bba3195ab96606",
+      "sha256": "108f06d61adee8b20325e58ea6d392080802940f8a9e89ac8595e37da703e4a1",
+      "working_tree_status": "clean",
+      "bytes": 7220
+    },
+    {
+      "repository": "Dr.XAS",
+      "path": "frontend/app/globals.css",
+      "head": "d1c13e45343f67442e3676d8b5bba3195ab96606",
+      "sha256": "5b86c5d6d7ab723f32220a7fec45058c3268cfbcce6ce2fcf632f4593ac4ca7f",
+      "working_tree_status": "clean",
+      "bytes": 21051
+    },
+    {
+      "repository": "Dr.XAS",
+      "path": "frontend/tailwind.config.ts",
+      "head": "d1c13e45343f67442e3676d8b5bba3195ab96606",
+      "sha256": "27127973256ba8a46a0f960e8171cb769e185c8e445be4f0c08e73285bc45fa9",
+      "working_tree_status": "clean",
+      "bytes": 3408
+    },
+    {
+      "repository": "DrXAS_packages/Dr-XAS-Website",
+      "path": "DESIGN.md",
+      "head": "38cbe5fe5c176d53333565dc05222a043d29bc4a",
+      "sha256": "21f10c569224a526b343e1d9c98c203b80d0984505ea429de8787c35222ebb25",
+      "working_tree_status": "clean",
+      "bytes": 5681
+    },
+    {
+      "repository": "DrXAS_packages/Dr-XAS-Website",
+      "path": "style.css",
+      "head": "38cbe5fe5c176d53333565dc05222a043d29bc4a",
+      "sha256": "b085c244c4b90873c81a40f7e565aeab47dbaf35ddcc247a97ca6c020b58e965",
+      "working_tree_status": "clean",
+      "bytes": 29359
+    },
+    {
+      "repository": "DrXAS_packages/Dr-XAS-Website",
+      "path": "script.js",
+      "head": "38cbe5fe5c176d53333565dc05222a043d29bc4a",
+      "sha256": "34d9c9bbf57ab9ce85b847e786a0b6d212be0d8df1d7efcead966c3424441eae",
+      "working_tree_status": "M script.js",
+      "bytes": 44322
+    },
+    {
+      "repository": "xraylarch-web",
+      "path": "frontend/AGENTS.md",
+      "head": "5abaf8c784cd5f056ab783f9556d35a0937b7056",
+      "sha256": "26a2d51d34aa2580c20e9442257d5a0354a0349f5bc695c0a2073e8aa6170cc9",
+      "working_tree_status": "clean",
+      "bytes": 1950
+    },
+    {
+      "repository": "xraylarch-web",
+      "path": "frontend/app/globals.css",
+      "head": "5abaf8c784cd5f056ab783f9556d35a0937b7056",
+      "sha256": "086ca73ba4dd2ff0f64389f0801c67d9722c642a116a82728074d42e5f944465",
+      "working_tree_status": "clean",
+      "bytes": 11532
+    },
+    {
+      "repository": "xraylarch-web",
+      "path": "frontend/public/fonts/figtree-latin.woff2",
+      "head": "5abaf8c784cd5f056ab783f9556d35a0937b7056",
+      "sha256": "8330490a01c60c196eae00b823de8102275aaa5862e7b76a7af21b8745338928",
+      "working_tree_status": "clean",
+      "bytes": 20184
+    },
+    {
+      "repository": "xraylarch-web",
+      "path": "frontend/public/fonts/figtree-latin-ext.woff2",
+      "head": "5abaf8c784cd5f056ab783f9556d35a0937b7056",
+      "sha256": "f153aa07c1b16fbb12391c2512860c97819a0a9fd014f338b2b3f12496479d13",
+      "working_tree_status": "clean",
+      "bytes": 10228
+    },
+    {
+      "repository": "xraylarch-web",
+      "path": "frontend/public/fonts/OFL-Figtree.txt",
+      "head": "5abaf8c784cd5f056ab783f9556d35a0937b7056",
+      "sha256": "bb272dfcd8801eb31fb98fe51828f76f0e41ac82f89256101df8021aa3d30ce2",
+      "working_tree_status": "clean",
+      "bytes": 4387
+    }
+  ]
+}

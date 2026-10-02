@@ -1,0 +1,146 @@
+/* Dr.XAS ecosystem portable tokens. See references/provenance.md. */
+@font-face {
+  font-family: "DrXAS Figtree";
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: url("./fonts/figtree-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "DrXAS Figtree";
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: url("./fonts/figtree-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+.drx-ui {
+  --drx-font-sans: "DrXAS Figtree", Avenir, "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --drx-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --drx-text-sm: 0.75rem;
+  --drx-text-control: 0.8125rem;
+  --drx-text-body: 0.875rem;
+  --drx-text-reading: 1rem;
+  --drx-text-section: 1.125rem;
+  --drx-text-title: 1.5rem;
+  --drx-leading: 1.5;
+  --drx-space-1: 0.25rem;
+  --drx-space-2: 0.5rem;
+  --drx-space-3: 0.75rem;
+  --drx-space-4: 1rem;
+  --drx-space-6: 1.5rem;
+  --drx-space-8: 2rem;
+  --drx-radius-control: 0.375rem;
+  --drx-radius-panel: 0.75rem;
+  --drx-radius-pill: 999px;
+  --drx-control-height: 2rem;
+  --drx-panel-inset: 0.75rem;
+  --drx-gap: 0.5rem;
+  --drx-motion-fast: 200ms;
+  --drx-motion-reveal: 300ms;
+  --drx-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Brand values from Dr-XAS-Website. Keep separate from scientific encodings. */
+  --drx-brand-purple: #3b0f70;
+  --drx-brand-magenta: #8c2981;
+  --drx-brand-pink: #b73779;
+  --drx-brand-coral: #f7705c;
+  --drx-gradient-primary: linear-gradient(135deg, #1f005c 0%, #b73779 100%);
+  --drx-gradient-magma: linear-gradient(90deg, #3b0f70 0%, #8c2981 34%, #de4968 68%, #fe9f6d 100%);
+  --drx-on-primary: #ffffff;
+  /* Semantic light theme and role adaptations. */
+  --drx-bg: #f7f6f9;
+  --drx-surface: #ffffff;
+  --drx-surface-subtle: #f2f0f5;
+  --drx-text: #1f1f1f;
+  --drx-text-muted: #5f6368;
+  --drx-border: #dedbe3;
+  --drx-control-border: #8b8493;
+  --drx-accent: #8c2981;
+  --drx-accent-soft: #f4e8f1;
+  --drx-focus: #8c2981;
+  --drx-success: #186447;
+  --drx-success-soft: #e8f4ed;
+  --drx-warning: #855300;
+  --drx-warning-soft: #fff3d7;
+  --drx-danger: #b2263b;
+  --drx-danger-soft: #fbe9ed;
+  --drx-plot-bg: #ffffff;
+  --drx-plot-grid: #e4e0e9;
+  --drx-shadow: 0 12px 32px rgb(31 0 92 / 0.07);
+  --drx-glass: rgb(255 255 255 / 0.88);
+  --drx-gradient-heading: linear-gradient(110deg, #1f1f1f 0%, #1f1f1f 45%, #3b0f70 65%, #b73779 100%);
+  color-scheme: light;
+}
+
+.drx-ui[data-drx-theme="dark"] {
+  --drx-bg: #14121a;
+  --drx-surface: #1e1b26;
+  --drx-surface-subtle: #282330;
+  --drx-text: #f3eff6;
+  --drx-text-muted: #bdb5c6;
+  --drx-border: #443c4f;
+  --drx-control-border: #897a97;
+  --drx-accent: #e6a0d8;
+  --drx-accent-soft: #422a42;
+  --drx-focus: #e6a0d8;
+  --drx-success: #91dfb4;
+  --drx-success-soft: #173b2b;
+  --drx-warning: #f3c677;
+  --drx-warning-soft: #42331c;
+  --drx-danger: #ffacb6;
+  --drx-danger-soft: #47232e;
+  --drx-plot-bg: #1e1b26;
+  --drx-plot-grid: #393241;
+  --drx-shadow: 0 12px 32px rgb(0 0 0 / 0.2);
+  --drx-glass: rgb(30 27 38 / 0.9);
+  --drx-gradient-heading: linear-gradient(110deg, #f3eff6 0%, #f3eff6 45%, #e6a0d8 72%, #ffa890 100%);
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  .drx-ui[data-drx-theme="auto"] {
+    --drx-bg: #14121a;
+    --drx-surface: #1e1b26;
+    --drx-surface-subtle: #282330;
+    --drx-text: #f3eff6;
+    --drx-text-muted: #bdb5c6;
+    --drx-border: #443c4f;
+    --drx-control-border: #897a97;
+    --drx-accent: #e6a0d8;
+    --drx-accent-soft: #422a42;
+    --drx-focus: #e6a0d8;
+    --drx-success: #91dfb4;
+    --drx-success-soft: #173b2b;
+    --drx-warning: #f3c677;
+    --drx-warning-soft: #42331c;
+    --drx-danger: #ffacb6;
+    --drx-danger-soft: #47232e;
+    --drx-plot-bg: #1e1b26;
+    --drx-plot-grid: #393241;
+    --drx-shadow: 0 12px 32px rgb(0 0 0 / 0.2);
+    --drx-glass: rgb(30 27 38 / 0.9);
+    --drx-gradient-heading: linear-gradient(110deg, #f3eff6 0%, #f3eff6 45%, #e6a0d8 72%, #ffa890 100%);
+    color-scheme: dark;
+  }
+}
+
+.drx-ui[data-drx-density="comfortable"],
+.drx-ui [data-drx-density="comfortable"] {
+  --drx-control-height: 2.5rem;
+  --drx-panel-inset: 1rem;
+  --drx-text-control: 0.875rem;
+}
+.drx-ui[data-drx-density="compact"],
+.drx-ui [data-drx-density="compact"] {
+  --drx-control-height: 2rem;
+  --drx-panel-inset: 0.75rem;
+  --drx-text-control: 0.8125rem;
+}
+
+@media (pointer: coarse) {
+  .drx-ui, .drx-ui[data-drx-density], .drx-ui [data-drx-density] {
+    --drx-control-height: 2.75rem;
+  }
+}

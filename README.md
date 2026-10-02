@@ -17,7 +17,7 @@
 - 🎯 **Intuitive Interface** — Easy-to-use web app and Jupyter notebook GUI
 - 📊 **Interactive Plots** — Visualize absorption, attenuation length, and more
 - 🧪 **Chemical Formula Support** — Enter any compound formula for calculations
-- ⚡ **Real-time Calculation** — Instant results as you adjust parameters
+- ⚡ **Explicit Calculation** — Calculate a sample snapshot and see when edited inputs make results stale
 - 🎨 **Beautiful Design** — Modern, responsive interface with dark mode support
 
 ---
@@ -49,7 +49,7 @@ For more flexibility and scripting capabilities:
 
 ### 🖥️ Web Application
 
-*Modern, responsive interface with real-time calculations*
+*Compact Dr.XAS workbench with light/dark themes and interactive plots*
 
 ### 📓 Jupyter Notebook GUI
 
@@ -64,7 +64,7 @@ For more flexibility and scripting capabilities:
 - 🐍 **Backend**: Python + Flask + [xraylib](https://github.com/tschoonj/xraylib)
 - ⚛️ **Frontend**: React + Vite
 - 📊 **Plotting**: Plotly.js
-- 🎨 **Styling**: Modern CSS with glassmorphism effects
+- 🎨 **Styling**: Dr.XAS semantic tokens, Figtree and Magma accents
 
 ---
 
@@ -72,15 +72,15 @@ For more flexibility and scripting capabilities:
 
 ### Prerequisites
 
-- Python 3.8+
-- Node.js 18+
+- Python 3.9+
+- Node.js 22+
 
 ### Quick Start
 
 ```bash
 # Clone the repository
-git clone https://github.com/Cathyhjj/EasyXASCalc.git
-cd EasyXASCalc
+git clone https://github.com/Dr-XAS/XASprep.git
+cd XASprep
 
 # Install backend dependencies
 cd backend
@@ -93,7 +93,7 @@ npm install
 # Run development servers
 npm run dev  # Frontend at http://localhost:5173
 # In another terminal:
-cd backend && python app.py  # Backend at http://localhost:5000
+cd backend && python app.py  # Backend at http://localhost:5002
 ```
 
 ---

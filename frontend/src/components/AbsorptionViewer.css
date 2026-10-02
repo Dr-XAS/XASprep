@@ -1,0 +1,59 @@
+/* Compact viewer rhythm adapted from xraylarch-web 5abaf8c; host tokens only. */
+.absorption-viewer {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--drx-border, #e2e4ea);
+  border-radius: 12px;
+  background: var(--drx-surface, #fff);
+  box-shadow: 0 3px 14px rgb(25 20 40 / 3%);
+}
+.absorption-viewer-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--drx-border, #e2e4ea); }
+.absorption-viewer-heading h3 { min-width: 0; margin: 0; font-size: 14px; }
+.absorption-viewer-toggle { display: flex; align-items: center; gap: 7px; min-height: var(--drx-control-height, 32px); border: 0; padding: 0 4px 0 0; background: transparent; color: var(--drx-text, #252938); font: inherit; font-weight: 650; cursor: pointer; text-align: left; }
+.absorption-viewer-toggle > svg:not(.absorption-viewer-chevron) { color: var(--drx-accent, #7855af); }
+.absorption-viewer-chevron { flex: 0 0 auto; color: var(--drx-text-muted, #687083); }
+.absorption-viewer[data-collapsed="true"] .absorption-viewer-chevron { transform: rotate(-90deg); }
+.absorption-viewer[data-collapsed="true"] .absorption-viewer-heading { border-bottom: 0; }
+.absorption-edge-energy { flex-shrink: 0; font-size: 12px; color: var(--drx-text-muted, #687083); font-variant-numeric: tabular-nums; }
+.absorption-viewer-body { padding: 12px 12px 0; }
+.absorption-viewer-body[hidden] { display: none; }
+.absorption-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 6px; }
+.absorption-metrics { display: flex; gap: 0; flex: 0 0 auto; margin: 0; background: var(--drx-surface-subtle, #f7f7fa); border: 1px solid var(--drx-border, #e2e4ea); border-radius: 8px; }
+.absorption-metric { padding: 8px 13px; }
+.absorption-metric + .absorption-metric { border-left: 1px solid var(--drx-border, #e2e4ea); }
+.absorption-metric dt { display: flex; align-items: center; gap: 5px; margin-bottom: 3px; color: var(--drx-text-muted, #687083); font-size: 11px; }
+.absorption-metric dd { margin: 0; color: var(--drx-text, #252938); font-size: 19px; line-height: 1.1; font-weight: 600; font-variant-numeric: tabular-nums; }
+.absorption-metric.is-warning dt, .absorption-metric.is-warning dd, .absorption-warning-note { color: var(--drx-warning, #ab551b); }
+.absorption-composition { min-width: 0; flex: 1 1 150px; overflow-x: auto; font-size: 12px; text-align: left; }
+.absorption-composition .katex-display { margin: 0; text-align: left; }
+.absorption-composition .katex-display > .katex { text-align: left; }
+.absorption-plot { min-width: 0; width: 100%; background: var(--drx-surface, #fff); }
+.absorption-plot-placeholder { height: 100%; display: grid; place-items: center; color: var(--drx-text-muted, #687083); font-size: 13px; }
+.absorption-display-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; padding: 8px 0 2px; border-top: 1px solid var(--drx-border, #e2e4ea); color: var(--drx-text-muted, #687083); font-size: 12px; }
+.absorption-legend-toggle, .absorption-height-field { display: inline-flex; align-items: center; gap: 6px; min-height: var(--drx-control-height, 32px); white-space: nowrap; }
+.absorption-legend-toggle { cursor: pointer; }
+.absorption-legend-toggle input { width: 14px; height: 14px; margin: 0; accent-color: var(--drx-accent, #7855af); }
+.absorption-height-field select { width: auto; height: var(--drx-control-height, 32px); border: 1px solid var(--drx-border, #e2e4ea); border-radius: 6px; padding: 0 22px 0 7px; background-color: var(--drx-surface, #fff); color: var(--drx-text, #252938); font: inherit; }
+.absorption-view-actions { display: flex; gap: 6px; margin-left: auto; }
+.absorption-view-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: var(--drx-control-height, 32px); padding: 4px 8px; border: 1px solid var(--drx-border, #e2e4ea); border-radius: 6px; background: var(--drx-surface, #fff); color: var(--drx-text, #252938); font: inherit; cursor: pointer; white-space: nowrap; }
+.absorption-view-actions button:hover { background: var(--drx-surface-subtle, #f7f7fa); border-color: var(--drx-accent, #7855af); }
+.absorption-view-actions button:disabled { opacity: .6; cursor: wait; }
+.absorption-viewer button:focus-visible, .absorption-viewer input:focus-visible, .absorption-viewer select:focus-visible, .absorption-plot-resizer:focus-visible { outline: 2px solid var(--drx-accent, #7855af); outline-offset: 3px; }
+.absorption-plot-resizer { display: flex; justify-content: center; align-items: center; height: 14px; cursor: row-resize; touch-action: none; user-select: none; }
+.absorption-plot-resizer span { width: 30px; height: 3px; border-radius: 2px; background: var(--drx-control-border, #cbd0da); }
+.absorption-plot-resizer:hover span, .absorption-plot-resizer:focus-visible span { background: var(--drx-accent, #7855af); }
+.absorption-scientific-note { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 5px 12px; margin: 0 -12px; padding: 8px 12px; border-top: 1px solid var(--drx-border, #e2e4ea); background: var(--drx-surface-subtle, #f7f7fa); color: var(--drx-text-muted, #687083); font-size: 10px; line-height: 1.5; }
+.absorption-warning-note { display: inline-flex; align-items: center; gap: 4px; }
+.absorption-viewer-error { margin: 0 0 12px; padding: 10px 12px; border: 1px solid var(--drx-border, #e2e4ea); border-radius: 6px; background: var(--drx-surface-subtle, #f7f7fa); color: var(--drx-danger, #b53e55); font-size: 13px; }
+@media (max-width: 520px) {
+  .absorption-viewer-heading { padding: 9px 10px; }
+  .absorption-viewer-body { padding: 10px 8px 0; }
+  .absorption-scientific-note { margin-inline: -8px; padding-inline: 10px; }
+  .absorption-display-controls { gap: 6px 10px; }
+  .absorption-viewer-toggle { font-size: 13px; gap: 5px; }
+  .absorption-edge-energy { font-size: 11px; }
+  .absorption-view-actions { margin-left: 0; }
+}
+@media (pointer: coarse) {
+  .absorption-plot-resizer { height: 28px; }
+}
