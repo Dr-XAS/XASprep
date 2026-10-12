@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
 import axios from 'axios';
-import { Plus, Trash2, Calculator, FlaskConical, Layers, Activity, Info, ThumbsUp, SlidersHorizontal, Github, Twitter, Mail, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, Calculator, FlaskConical, Layers, Activity, Info, ThumbsUp, SlidersHorizontal, Github, Twitter, Mail, AlertTriangle, ListChecks } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import 'katex/dist/katex.min.css';
@@ -26,6 +26,9 @@ function App() {
   ]);
   const [isCalculating, setIsCalculating] = useState(false);
   const [results, setResults] = useState([]);
+  // The sample list the current results were computed from, so a suggestion
+  // can be applied to the right rows even after the user edits the list.
+  const [calcSnapshot, setCalcSnapshot] = useState([]);
   const [error, setError] = useState(null);
 
   const [liked, setLiked] = useState(false);
@@ -144,7 +147,10 @@ function App() {
     setCalcMode(newMode);
   };
 
-  const handleCalculate = async () => {
+  // The button passes a click event; applySuggestion passes the list it just built,
+  // since the state update has not landed yet.
+  const handleCalculate = async (override) => {
+    const stack = Array.isArray(override) ? override : components;
     setIsCalculating(true);
     setError(null);
     setResults([]);
@@ -161,7 +167,7 @@ function App() {
       };
 
       // 1. Components (now representing the entire sample stack)
-      const allCompounds = components.map(c => ({
+      const allCompounds = stack.map(c => ({
         compound: c.compound,
         area_density: getAreaDensity(c) / 1000
       }));
@@ -178,6 +184,7 @@ function App() {
 
       if (response.data.error) throw new Error(response.data.error);
       setResults(response.data.results);
+      setCalcSnapshot(stack);
       trackEvent('calculate_absorption', {
         calculation_mode: calcMode,
         sample_count: allCompounds.length,
@@ -189,6 +196,40 @@ function App() {
     } finally {
       setIsCalculating(false);
     }
+  };
+
+  // Suggested area densities come back in g/cm²; show them in the unit the
+  // current mode edits (mg for a pellet, mg/cm² otherwise).
+  const toInputUnit = (gPerCm2) => {
+    const mgPerCm2 = gPerCm2 * 1000;
+    if (calcMode !== 'pellet') return mgPerCm2;
+    return mgPerCm2 * Math.PI * Math.pow(pelletDiameter / 20, 2);
+  };
+  const inputUnitLabel = calcMode === 'pellet' ? 'mg' : 'mg/cm²';
+
+  const suggestedAbsorbers = (suggestion) =>
+    suggestion ? suggestion.compounds.filter(c => c.role === 'absorber' && c.suggested_area_density != null) : [];
+
+  // Set every absorber to its suggested amount and cap the matrix only when
+  // the current amount already breaks the absorption limit; adding more
+  // diluent is the user's call.
+  const applySuggestion = (suggestion) => {
+    if (!suggestion) return;
+    const suggestedById = new Map();
+    suggestion.compounds.forEach((c, i) => {
+      const snap = calcSnapshot[i];
+      if (!snap || snap.compound !== c.compound || c.suggested_area_density == null) return;
+      const apply = c.role === 'absorber' || (suggestion.matrix_scale != null && suggestion.matrix_scale < 1);
+      if (apply) suggestedById.set(snap.id, c.suggested_area_density);
+    });
+    const next = components.map(c => {
+      if (!suggestedById.has(c.id)) return c;
+      const value = parseFloat(toInputUnit(suggestedById.get(c.id)).toFixed(3));
+      return calcMode === 'pellet' ? { ...c, mass: value } : { ...c, area_density: value };
+    });
+    setComponents(next);
+    trackEvent('apply_suggestion', { calculation_mode: calcMode });
+    handleCalculate(next);
   };
 
   // Auto-calculate on mount
@@ -482,6 +523,83 @@ function App() {
                 <Activity size={48} className="text-muted" opacity={0.2} />
                 <p>Configure composition and edges, then click Calculate.</p>
               </div>
+            )}
+
+            {results.length > 0 && (
+              <MotionDiv className="card summary-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                <div className="section-header">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <ListChecks size={18} />
+                    <h2 style={{ margin: 0 }}>Summary</h2>
+                  </div>
+                  <span className="summary-hint">Target edge jump 1.0, max absorption below 4</span>
+                </div>
+                <div className="summary-scroll">
+                  <table className="summary-table">
+                    <thead>
+                      <tr>
+                        <th>Edge</th>
+                        <th>Edge jump</th>
+                        <th>Max abs.</th>
+                        <th>Status</th>
+                        <th>Sample for jump 1.0</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {results.map((res, idx) => {
+                        if (res.error) {
+                          return (
+                            <tr key={idx}>
+                              <td>{res.element} {res.edge}</td>
+                              <td colSpan={5} className="summary-error">{res.error}</td>
+                            </tr>
+                          );
+                        }
+                        const jumpBad = res.edge_jump < 0.3 || res.edge_jump > 3.5;
+                        const absBad = res.abs_max > 4;
+                        const absorbers = suggestedAbsorbers(res.suggestion);
+                        const matrixOver = res.suggestion?.matrix_scale != null && res.suggestion.matrix_scale < 1;
+                        return (
+                          <tr key={idx}>
+                            <td className="summary-edge">{res.element} {res.edge} <span className="summary-muted">{res.edge_value?.toFixed(0)} eV</span></td>
+                            <td className={clsx({ 'summary-bad': jumpBad })}>{res.edge_jump?.toFixed(2)}</td>
+                            <td className={clsx({ 'summary-bad': absBad })}>{res.abs_max?.toFixed(2)}</td>
+                            <td>
+                              <span className={clsx('summary-badge', jumpBad || absBad ? 'warn' : 'ok')}>
+                                {jumpBad || absBad ? 'Adjust' : 'OK'}
+                              </span>
+                            </td>
+                            <td>
+                              {absorbers.length === 0 ? (
+                                <span className="summary-muted">No sample contains {res.element}</span>
+                              ) : (
+                                absorbers.map(c => (
+                                  <div key={c.compound}>
+                                    <strong>{toInputUnit(c.suggested_area_density).toFixed(1)}</strong> {inputUnitLabel} {c.compound}
+                                  </div>
+                                ))
+                              )}
+                              {matrixOver && (
+                                <div className="summary-muted">
+                                  matrix over limit, cap at {res.suggestion.compounds.filter(c => c.role === 'matrix').map(c => `${toInputUnit(c.suggested_area_density).toFixed(1)} ${inputUnitLabel} ${c.compound}`).join(', ')}
+                                </div>
+                              )}
+                            </td>
+                            <td>
+                              {absorbers.length > 0 && (
+                                <button className="primary summary-apply" onClick={() => applySuggestion(res.suggestion)} disabled={isCalculating}>
+                                  Apply
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </MotionDiv>
             )}
 
             {results.map((res, idx) => {

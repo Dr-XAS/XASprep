@@ -51,7 +51,9 @@ Diagnostics: `memoryctl status --repo "$PWD"` and `memoryctl doctor --repo
   as static files from `/`, plus `/healthz` (runs one xraylib lookup so it
   proves the library works, not only that the port is open), `POST
   /api/calculate` (formula, density, energy range → plot data through
-  `core.MaterialAbs`), `GET /api/elements`, `POST /api/auto_edges` (the edges
+  `core.MaterialAbs`, plus a per-edge `suggestion` from `MaterialAbs.suggest`
+  with the masses that hit the edge-jump target and stay under the absorption
+  limit), `GET /api/elements`, `POST /api/auto_edges` (the edges
   of every element in a formula within the energy window) and `GET|POST
   /api/likes`. The likes counter is the only mutable state; it lives in
   `XASPREP_DATA_DIR/likes.json`, which defaults to `backend/` for a local run

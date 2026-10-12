@@ -75,7 +75,9 @@ def calculate():
         data = request.json
         compounds = data.get('compounds', [])
         edges = data.get('edges', [])
-        
+        jump_target = float(data.get('jump_target', 1.0))
+        abs_limit = float(data.get('abs_limit', 4.0))
+
         results = []
         
         for edge_cfg in edges:
@@ -92,7 +94,15 @@ def calculate():
                 
                 # Convert to JSON
                 plot_json = json.loads(fig.to_json())
-                
+
+                # The suggestion is advisory: a stack without the edge element
+                # still gets its plot, just no recommended masses.
+                try:
+                    suggestion = mat.suggest(jump_target=jump_target, abs_limit=abs_limit)
+                except Exception as e:
+                    logging.warning(f"suggest failed for {element} {edge_type}: {e}")
+                    suggestion = None
+
                 results.append({
                     "element": element,
                     "edge": edge_type,
@@ -100,7 +110,8 @@ def calculate():
                     "edge_jump": getattr(mat, 'edge_jump', 0),
                     "abs_max": getattr(mat, 'abs_max', 0),
                     "edge_value": getattr(mat, 'edge_value', 0),
-                    "compound_latex": getattr(mat, 'compound_name_all_latex', "")
+                    "compound_latex": getattr(mat, 'compound_name_all_latex', ""),
+                    "suggestion": suggestion
                 })
             except Exception as e:
                 logging.error(f"Error calculating {element} {edge_type}: {e}")

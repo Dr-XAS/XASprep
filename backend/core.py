@@ -53,6 +53,7 @@ class MaterialAbs:
 
     def edge_jump_calc(self, E1=None, E2=None):
         mask = np.s_[:] if E1 is None else ~np.ma.masked_outside(self.energy * 1000, E1, E2).mask
+        self.jump_mask = mask
         # Handle cases where mask might be empty or all false if range is invalid
         if np.any(mask):
             self.abs_max = self.abs_total[mask].max()
@@ -94,7 +95,10 @@ class MaterialAbs:
                 # However, xraylib isn't naturally vectorized for the first argument, but is for second? 
                 # Actually in the original code: [xrl.CS_Total_CP(compound, E) * area_density for E in self.energy]
                 # This is a list comprehension, so it's fine.
-                compound_info["abs"] = np.array([xrl.CS_Total_CP(compound, float(E)) * float(area_density) for E in self.energy])
+                # Keep the curve per unit area density too: absorption is linear
+                # in area density, so suggest() can rescale without re-querying xraylib.
+                compound_info["abs_unit"] = np.array([xrl.CS_Total_CP(compound, float(E)) for E in self.energy])
+                compound_info["abs"] = compound_info["abs_unit"] * float(area_density)
                 self.abs_total += compound_info["abs"]
             except Exception as e:
                 print(f"Error calculating for {compound}: {e}")
@@ -121,6 +125,79 @@ class MaterialAbs:
         # Calculate the transmission
         self.transmitted_percentage = np.exp(-self.abs_total) * 100
         return self.abs_total
+
+    def suggest(self, jump_target=1.0, abs_limit=4.0):
+        """Rescale the stack so the edge jump hits jump_target, then report how
+        much of the rest fits under abs_limit. Compounds containing the edge
+        element ("absorber") scale together as one group; the others ("matrix")
+        form the second group. Absorption is linear in area density, so the
+        edge jump is affine in the absorber scale once the absorber dominates
+        the window, and the matrix cap is a closed-form minimum over energies.
+        Returns None when nothing in the stack contains the element."""
+        Z = xrl.SymbolToAtomicNumber(self.element)
+        mask = self.jump_mask
+        roles = []
+        for info in self.compounds_info:
+            try:
+                elements = xrl.CompoundParser(info["compound"])["Elements"]
+            except Exception:
+                elements = ()
+            roles.append("absorber" if Z in elements else "matrix")
+
+        zero = np.zeros_like(self.energy)
+        A = sum((info["abs"] for info, r in zip(self.compounds_info, roles) if r == "absorber"), zero)
+        M = sum((info["abs"] for info, r in zip(self.compounds_info, roles) if r == "matrix"), zero)
+        if not np.any(A > 0):
+            return None
+
+        def jump(k):
+            total = k * A + M
+            return total[mask].max() - total[mask].min()
+
+        # Two points give the slope; a few corrections absorb the small
+        # nonlinearity from the matrix's own slope across the window.
+        j1, j2 = jump(1.0), jump(2.0)
+        slope = j2 - j1
+        if slope <= 0:
+            return None
+        k = 1.0 + (jump_target - j1) / slope
+        for _ in range(5):
+            k = max(k, 0.0)
+            err = jump(k) - jump_target
+            if abs(err) < 1e-6:
+                break
+            k -= err / slope
+        k = float(k)
+
+        # Largest matrix scale m with max(k*A + m*M) <= abs_limit over the window.
+        m = None
+        if np.any(M[mask] > 0):
+            headroom = abs_limit - k * A[mask]
+            with np.errstate(divide="ignore", invalid="ignore"):
+                ratios = np.where(M[mask] > 0, headroom / M[mask], np.inf)
+            m = max(float(ratios.min()), 0.0)
+
+        compounds = []
+        for info, r in zip(self.compounds_info, roles):
+            scale = k if r == "absorber" else m
+            current = float(info["area_density"])
+            compounds.append({
+                "compound": info["compound"],
+                "role": r,
+                "area_density": current,
+                "suggested_area_density": None if scale is None else current * scale,
+            })
+
+        total = k * A + (m if m is not None else 1.0) * M
+        return {
+            "jump_target": jump_target,
+            "abs_limit": abs_limit,
+            "absorber_scale": k,
+            "matrix_scale": m,
+            "edge_jump": float(jump(k)),
+            "abs_max": float(total[mask].max()),
+            "compounds": compounds,
+        }
 
     def plot(self, plot_transmission=True, fontsize=14, show_label=True, width=800, height=500, abs_edge='', **kwargs):
         fig = make_subplots(
