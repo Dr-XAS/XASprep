@@ -1,0 +1,21 @@
+{
+  "source_repository": "DrXAS_packages/DrXAS_skills",
+  "source_revision": "f330235152ca603d3249e55f6b13a60935243895",
+  "source_path": "skills/web-app/drxas-ui-design/assets",
+  "copied_on": "2026-10-02",
+  "integration": "Unmodified portable assets. XASprep applies compact workbench layout and native control styles in ../App.css; the application root owns theme state. Scientific series colors remain under viewer control.",
+  "files": {
+    "drxas-tokens.css": "cb7918247f52562c8eafe536b45a06eef641474564fda96640832f5c17eac151",
+    "drxas-ui.css": "eb92ab2030e067c4810172814c77ebf8648eb8ed3c84262f760614985b780979",
+    "plot-theme.mjs": "edde8c9fd7d91a2f0ed6edf44d77dc77b23117a62370ad1d11534b1d6f32f05d",
+    "source-provenance.json": "ab28f928063e05fc73ddd3867e2e5e045f7b0e4fb08777ce4935422d52136efd",
+    "fonts/figtree-latin.woff2": "8330490a01c60c196eae00b823de8102275aaa5862e7b76a7af21b8745338928",
+    "fonts/figtree-latin-ext.woff2": "f153aa07c1b16fbb12391c2512860c97819a0a9fd014f338b2b3f12496479d13",
+    "fonts/OFL-Figtree.txt": "bb272dfcd8801eb31fb98fe51828f76f0e41ac82f89256101df8021aa3d30ce2"
+  },
+  "adapted_viewer_license": {
+    "source_path": "skills/web-app/drxas-scientific-viewers/assets/upstream/LICENSE",
+    "local_path": "UPSTREAM-LICENSE",
+    "sha256": "34ab62530985ff236dcd612a86fde38749a02f7bf44b224e3f80256e6a068545"
+  }
+}

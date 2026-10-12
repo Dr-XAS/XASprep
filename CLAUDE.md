@@ -11,40 +11,6 @@ This file is the canonical agent guide for the repo. `AGENTS.md` points every
 other tool (Codex, OpenCode, Kilo Code, Gemini CLI, Cursor) at it. Keep it
 accurate, code-focused, and free of secrets.
 
-## Shared memory bridge
-
-This repository uses the Mac-local shared memory bridge (project id `xasprep`);
-Claude native auto-memory and Codex native memories are disabled. At every
-session start, run the exact `memoryctl load` command emitted by the
-SessionStart hook with its current writer and session ID, read the returned
-`MEMORY.md` index in full, then read only relevant bodies with
-`memoryctl read --repo "$PWD" --topic TOPIC-SLUG`. Treat that revision-bound
-load as required context; reload before continuing if a hook reports newer
-memory. In a tool with no hooks, pick one stable session ID for the whole
-session and run `memoryctl load --repo "$PWD" --writer codex --session
-SESSION-ID` yourself.
-
-After every meaningful completed unit and before stopping or compacting, start
-one focused lowercase kebab-case topic with `memoryctl begin --repo "$PWD"
---topic TOPIC-SLUG --operation upsert --writer WRITER --session SESSION-ID`.
-Reuse an existing topic rather than creating a near-duplicate. Edit only the
-staged `topic.md` and `pointer.txt`, never the canonical memory directory
-(`~/.local/share/claude-project-memory/xasprep/memory/`). This repo has no
-weekly or daily report targets, so a transaction carries just those two files.
-Record the change and reason, absolute date, state (planned / built /
-committed / deployed / uncommitted), branch, key files or functions,
-verification, pending work, and non-obvious decisions; keep the pointer to
-exactly one Markdown link and exclude secrets and transient narration. Commit
-with `memoryctl commit TRANSACTION-ID`. On a stale revision, reload, reread,
-and reconcile through a new transaction, never force-copy staged files. Use
-`memoryctl no-op --repo "$PWD" --session SESSION-ID --reason "..."` only for a
-genuinely clean session with a truthful reason.
-
-Writers are `claude`, `codex`, and `pi`. OpenCode and Kilo Code use `codex`.
-Diagnostics: `memoryctl status --repo "$PWD"` and `memoryctl doctor --repo
-"$PWD"` are read-only. The operator guide is
-`~/claude-tools/docs/shared-memory-bridge.md`.
-
 ## Architecture
 
 - **`backend/app.py`** is the whole server: Flask, serving `../frontend/dist`
@@ -139,5 +105,5 @@ The public copy on Render (`easyxascalc.onrender.com`) builds with
 
 ## Session hygiene
 
-Keep each session scoped to one task. Once a unit is checkpointed through the
-bridge, suggest `/clear` or a fresh session; memory carries the state forward.
+Keep each session scoped to one task. Once a unit is done, suggest `/clear` or a
+fresh session.
