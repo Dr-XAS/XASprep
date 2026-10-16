@@ -161,7 +161,7 @@ cron regardless of where these lines sit in the shared crontab.
 Every screen operation asserts the name matches `app-xasprep-*`. There is no
 broad process match anywhere in this codebase.
 
-The Dr-XAS ops sentinel (`/local/ops-agent`, screen `drxas-opsagent`) watches
+The Dr-XAS ops sentinel (`/local/drxas/ops-agent/repo`, screen `drxas-opsagent`) watches
 the app from outside it, observe only, through the `xasprep` row of
 `opsagent/registry.yml`: `/healthz`, both screens, and `ops/check.sh`, which
 fails for an hour after an error or critical alert, while the watcher is
