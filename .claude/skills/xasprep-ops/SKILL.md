@@ -79,7 +79,7 @@ scp ops/lib.sh drxas:/local/apps/xasprep/ops/lib.sh.new && ssh drxas 'mv -f /loc
 ## Never
 
 - `pkill`, `killall`, or any process match by name on drxas. Only `screen -S app-xasprep-… -X quit`.
-- Touch `/local/Dr.XAS-*`, `/local/drxas-ops`, `/local/apps/drxas-hub`, any `drxas-*` screen, ports 3000/8000/3001/8001/6969/3004, or `~/.drxas_env`.
+- Touch `/local/Dr.XAS-*`, `/local/drxas/ops`, `/local/apps/drxas-hub`, any `drxas-*` screen, ports 3000/8000/3001/8001/6969/3004, or `~/.drxas_env`.
 - `pip install` or `npm install -g` into `~/miniconda3/envs/*`; the build only prepends `drxas-node22/bin` to PATH.
 - Edit the crontab outside the `# BLOCK — XASprep` section.
 - Put a secret in argv, a log, git, or any file that is not 0600.

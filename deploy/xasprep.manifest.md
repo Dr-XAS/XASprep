@@ -115,7 +115,7 @@ Dr.XAS listeners (3000, 8000, 3001, 8001, 6969, 3004) are snapshotted before
 and after every deploy; a change raises a critical alert. The exception is a
 change while a Dr.XAS deploy was running, which restarts those listeners
 itself: that is logged as a warning. The deploy tells by reading the mtime of
-`/local/drxas-ops/state/{dev,prod}-deploy.lock` and whether `/proc/locks`
+`/local/drxas/ops/state/{dev,prod}-deploy.lock` and whether `/proc/locks`
 shows either held. It never opens or locks them.
 
 The `ops/` scripts live at `/local/apps/xasprep/ops/`, outside every release,
