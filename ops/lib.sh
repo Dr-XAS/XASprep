@@ -90,7 +90,7 @@ DRXAS_PORTS=(3000 8000 3001 8001 6969 3004)
 
 # Each Dr.XAS deploy holds an flock on one of these for its whole run, and a
 # Dr.XAS deploy restarts its own listeners. Read only, never locked from here.
-DRXAS_DEPLOY_LOCKS=(/local/drxas-ops/state/dev-deploy.lock /local/drxas-ops/state/prod-deploy.lock)
+DRXAS_DEPLOY_LOCKS=(/local/drxas/ops/state/dev-deploy.lock /local/drxas/ops/state/prod-deploy.lock)
 
 PYTHON_BASE=${XASPREP_PYTHON:-/usr/bin/python3}
 
